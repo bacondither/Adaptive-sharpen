@@ -142,7 +142,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	float3 w1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
 	float3 w2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
 
-	// Transition to a smaller sharpening kernel if the center edge val is above thr
+	// Transition to a concave kernel if the center edge val is above thr
 	float3 dW = pow(lerp( w1, w2, smoothstep( 0.3, 0.6, c_edge)), 2);
 
 	float mdiff_c0  = 0.02 + 3*( abs(luma[0]-luma[2]) + abs(luma[0]-luma[4])

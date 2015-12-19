@@ -41,7 +41,7 @@ float4 p1  : register(c1);
 #define py (p1[1])
 
 // Get destination pixel values
-#define get(x, y) ( saturate(tex2D(s0, tex + float2( x*px, y*py)).rgb) )
+#define get(x,y)  ( saturate(tex2D(s0, tex + float2( x*px, y*py)).rgb) )
 
 // Compute diff
 #define b_diff(z) ( abs(blur-c[z]) )
