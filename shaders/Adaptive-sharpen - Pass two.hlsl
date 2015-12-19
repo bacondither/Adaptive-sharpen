@@ -95,7 +95,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	float c_edge = orig.w - w_offset;
 
 	// Displays a green screen if the edge data is not inside a valid range in the .w channel
-	if (c_edge > (32) || c_edge < (-0.5)  ) { return float4(0, 1, 0, alpha_out); }
+	if (c_edge > 32 || c_edge < -0.5  ) { return float4(0, 1, 0, alpha_out); }
 
 	// Get points, saturate colour data in c[0]
 	// [                c22               ]
