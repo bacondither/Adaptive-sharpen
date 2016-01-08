@@ -1,6 +1,6 @@
 // $MinimumShaderProfile: ps_3_0
 
-// Copyright (c) 2015, bacondither
+// Copyright (c) 2015-2016, bacondither
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 
 // Second pass, MUST BE PLACED IMMEDIATELY AFTER THE FIRST PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2015-12-09 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2016-01-07 - (requires ps >= 3.0)
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
@@ -66,12 +66,12 @@ float4 p1  : register(c1);
 #define py (p1[1])
 
 // Saturation loss reduction
-#define minim_satloss  ( (c[0].rgb*(CtL(c[0].rgb + sharpdiff)/c0_Y) + (c[0].rgb + sharpdiff))/2 )
+#define minim_satloss  ( (c[0].rgb*min((c0_Y + sharpdiff)/c0_Y, 1e+5) + (c[0].rgb + sharpdiff))/2 )
 
 // Soft if, fast
-#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge)+ 0.0067) - 0.85) )
+#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge) + 0.0067) - 0.85) )
 
-// Soft limit
+// Soft limit, modf tanh
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
 
 // Get destination pixel values
@@ -184,7 +184,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 		lowthsum     += lowth;
 	}
 
-	neg_laplace = pow((neg_laplace/weightsum), (1.0/2.4)) - 0.064;
+	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.064;
 
 	// Compute sharpening magnitude function
 	float sharpen_val = (lowthsum/12)*(curve_height/(curveslope*pow(abs(c_edge), 3.5) + 0.5));

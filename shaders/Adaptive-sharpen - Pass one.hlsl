@@ -1,6 +1,6 @@
 // $MinimumShaderProfile: ps_3_0
 
-// Copyright (c) 2015, bacondither
+// Copyright (c) 2015-2016, bacondither
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -26,7 +26,7 @@
 
 // First pass, MUST BE PLACED IMMEDIATELY BEFORE THE SECOND PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2015-12-09 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2016-01-07 - (requires ps >= 3.0)
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
