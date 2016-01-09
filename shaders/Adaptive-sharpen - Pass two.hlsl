@@ -71,7 +71,7 @@ float4 p1  : register(c1);
 // Soft if, fast
 #define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge) + 0.0067) - 0.85) )
 
-// Soft limit, modf tanh
+// Soft limit, modified tanh
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
 
 // Get destination pixel values
@@ -171,7 +171,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	float weightsum   = 0;
 	float neg_laplace = 0;
 
-	int order[12] = { 2, 4, 5, 7, 1, 3, 6, 8, 9, 10, 11, 12 };
+	static const int order[12] = { 2, 4, 5, 7, 1, 3, 6, 8, 9, 10, 11, 12 };
 
 	[unroll]
 	for (int pix = 0; pix < 12; ++pix)
