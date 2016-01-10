@@ -72,9 +72,9 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	// Edge detection
 	// Matrix weights
 	// [         1/4,        ]
-	// [      4,  1,  4      ]
-	// [ 1/4, 4,  1,  4, 1/4 ]
-	// [      4,  1,  4      ]
+	// [      1,  1,  1      ]
+	// [ 1/4, 1,  1,  1, 1/4 ]
+	// [      1,  1,  1      ]
 	// [         1/4         ]
 	float edge = length( b_diff(0) + b_diff(1) + b_diff(2) + b_diff(3)
 	                   + b_diff(4) + b_diff(5) + b_diff(6) + b_diff(7) + b_diff(8)
