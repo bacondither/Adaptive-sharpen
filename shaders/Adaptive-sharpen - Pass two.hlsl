@@ -192,22 +192,26 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	// Calculate sharpening diff and scale
 	float sharpdiff = (c0_Y - neg_laplace)*(sharpen_val*0.8 + 0.01);
 
-	// Calculate local near min & max, partial cocktail sort (No branching!)
+	// Calculate local near min & max, partial sort
 	[unroll]
 	for (int i = 0; i < 3; ++i)
 	{
-		for (int i1 = 1+i; i1 < 25-i; ++i1)
+		for (int i1 = i; i1 < 24-i; i1 += 2)
 		{
-			float temp = luma[i1-1];
-			luma[i1-1] = min(luma[i1-1], luma[i1]);
-			luma[i1]   = max(temp, luma[i1]);
+			float temp = luma[i1];
+			luma[i1]   = min(luma[i1], luma[i1+1]);
+			luma[i1+1] = max(temp, luma[i1+1]);
 		}
 
-		for (int i2 = 23-i; i2 > i; --i2)
+		for (int i2 = i; i2 < 24-i; i2 += 2)
 		{
-			float temp = luma[i2-1];
-			luma[i2-1] = min(luma[i2-1], luma[i2]);
-			luma[i2]   = max(temp, luma[i2]);
+			float temp  = luma[i];
+			luma[i]     = min(luma[i], luma[i2+2]);
+			luma[i2+2]  = max(temp, luma[i2+2]);
+
+			float temp2 = luma[24-i];
+			luma[24-i]  = max(luma[24-i], luma[i2+1]);
+			luma[i2+1]  = min(temp2, luma[i2+1]);
 		}
 	}
 
