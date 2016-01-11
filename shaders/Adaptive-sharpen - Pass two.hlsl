@@ -112,8 +112,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	                 get(-2, 1), get(-2,-1), get( 0,-3), get( 1,-2), get(-1,-2) };
 
 	// Allow for higher overshoot if the current edge pixel is surrounded by similar edge pixels
-	float maxedge = (max4( max4(c[1].w,c[2].w,c[3].w,c[4].w), max4(c[5].w,c[6].w,c[7].w,c[8].w),
-	                       max4(c[9].w,c[10].w,c[11].w,c[12].w), c[0].w ))-w_offset;
+	float maxedge = max4( max4(c[1].w,c[2].w,c[3].w,c[4].w), max4(c[5].w,c[6].w,c[7].w,c[8].w),
+	                       max4(c[9].w,c[10].w,c[11].w,c[12].w), c[0].w )-w_offset;
 
 	// [          x          ]
 	// [       z, x, w       ]
@@ -196,22 +196,24 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	[unroll]
 	for (int i = 0; i < 3; ++i)
 	{
+		float temp;
+
 		for (int i1 = i; i1 < 24-i; i1 += 2)
 		{
-			float temp = luma[i1];
+			temp = luma[i1];
 			luma[i1]   = min(luma[i1], luma[i1+1]);
 			luma[i1+1] = max(temp, luma[i1+1]);
 		}
 
-		for (int i2 = i; i2 < 24-i; i2 += 2)
+		for (int i2 = 24-i; i2 > i; i2 -= 2)
 		{
-			float temp  = luma[i];
-			luma[i]     = min(luma[i], luma[i2+2]);
-			luma[i2+2]  = max(temp, luma[i2+2]);
+			temp = luma[i];
+			luma[i]    = min(luma[i], luma[i2]);
+			luma[i2]   = max(temp, luma[i2]);
 
-			float temp2 = luma[24-i];
-			luma[24-i]  = max(luma[24-i], luma[i2+1]);
-			luma[i2+1]  = min(temp2, luma[i2+1]);
+			temp = luma[24-i];
+			luma[24-i] = max(luma[24-i], luma[i2-1]);
+			luma[i2-1] = min(temp, luma[i2-1]);
 		}
 	}
 
