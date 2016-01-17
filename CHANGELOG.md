@@ -1,3 +1,7 @@
+##2016-01-12
+- Faster sorting algorithm 
+
+
 ##2016-01-07
 - Fix compiler warning X3571 and handle a possible divide by zero.
 
