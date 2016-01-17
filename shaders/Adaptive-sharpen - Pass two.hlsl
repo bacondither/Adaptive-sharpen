@@ -26,7 +26,7 @@
 
 // Second pass, MUST BE PLACED IMMEDIATELY AFTER THE FIRST PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2016-01-07 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2016-01-12 - (requires ps >= 3.0)
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
@@ -236,9 +236,11 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 		else { return float4( (orig.rgb + sharpdiff), alpha_out ); }
 	}
 
-	// Normal path
-	[flatten]
-	if (sharpdiff > 0) { return float4( minim_satloss, alpha_out ); }
+	else // Normal path
+	{
+		[flatten]
+		if (sharpdiff > 0) { return float4( minim_satloss, alpha_out ); }
 
-	else { return float4( (c[0].rgb + sharpdiff), alpha_out ); }
+		else { return float4( (c[0].rgb + sharpdiff), alpha_out ); }
+	}
 }
