@@ -1,5 +1,5 @@
 ##2016-01-12
-- Faster sorting algorithm 
+- Faster sorting algorithm.
 
 
 ##2016-01-07

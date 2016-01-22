@@ -30,7 +30,7 @@
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
-float4 p1  : register(c1);
+float2 p1  : register(c1);
 
 //--------------------------------------- Settings ------------------------------------------------
 
@@ -45,13 +45,13 @@ float4 p1  : register(c1);
 
 #define curveslope      (curve_height*0.7)   // Sharpening curve slope, high edge values
 
-#define D_overshoot     0.009                // Max dark overshoot before max compression, >0!
-#define D_compr_low     0.250                // Max compression ratio, dark overshoot (1/0.250=4x)
-#define D_compr_high    0.500                // -||- pixel surrounded by edges (1/0.500=2x)
-
 #define L_overshoot     0.003                // Max light overshoot before max compression, >0!
 #define L_compr_low     0.167                // Max compression ratio, light overshoot (1/0.167=6x)
 #define L_compr_high    0.334                // -||- pixel surrounded by edges (1/0.334=3x)
+
+#define D_overshoot     0.009                // Max dark overshoot before max compression, >0!
+#define D_compr_low     0.250                // Max compression ratio, dark overshoot (1/0.250=4x)
+#define D_compr_high    0.500                // -||- pixel surrounded by edges (1/0.500=2x)
 
 #define max_scale_lim   0.1                  // Abs change before max compression (0.1 = +-10%)
 
@@ -59,11 +59,8 @@ float4 p1  : register(c1);
 
 //-------------------------------------------------------------------------------------------------
 #define w_offset        2.0                  // Edge channel offset, must be the same in all passes
+#define bounds_check    true                 // If edge data is ouside bounds, make pixels green
 //-------------------------------------------------------------------------------------------------
-
-// Pixel "width"
-#define px (p1[0])
-#define py (p1[1])
 
 // Saturation loss reduction
 #define minim_satloss  ( (c[0].rgb*min((c0_Y + sharpdiff)/c0_Y, 1e+5) + (c[0].rgb + sharpdiff))/2 )
@@ -75,7 +72,7 @@ float4 p1  : register(c1);
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
 
 // Get destination pixel values
-#define get(x,y)       ( tex2D(s0, tex + float2(x*px, y*py)) )
+#define get(x,y)       ( tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))) )
 #define sat(input)     ( float4(saturate((input).xyz), (input).w) )
 
 // Maximum of four values
@@ -94,8 +91,10 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	float4 orig  = tex2D(s0, tex);
 	float c_edge = orig.w - w_offset;
 
-	// Displays a green screen if the edge data is not inside a valid range in the .w channel
-	if (c_edge > 32 || c_edge < -0.5  ) { return float4(0, 1, 0, alpha_out); }
+	if (bounds_check == true)
+	{
+		if (c_edge > 32 || c_edge < -0.5  ) { return float4(0, 1, 0, alpha_out); }
+	}
 
 	// Get points, saturate colour data in c[0]
 	// [                c22               ]
@@ -113,7 +112,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 
 	// Allow for higher overshoot if the current edge pixel is surrounded by similar edge pixels
 	float maxedge = max4( max4(c[1].w,c[2].w,c[3].w,c[4].w), max4(c[5].w,c[6].w,c[7].w,c[8].w),
-	                       max4(c[9].w,c[10].w,c[11].w,c[12].w), c[0].w )-w_offset;
+	                      max4(c[9].w,c[10].w,c[11].w,c[12].w), c[0].w ) - w_offset;
 
 	// [          x          ]
 	// [       z, x, w       ]

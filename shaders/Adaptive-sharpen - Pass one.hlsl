@@ -30,18 +30,14 @@
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
-float4 p1  : register(c1);
+float2 p1  : register(c1);
 
 //---------------------------------------------------------------------------------
 #define w_offset 2.0         // Edge channel offset, must be the same in all passes
 //---------------------------------------------------------------------------------
 
-// Pixel "width"
-#define px (p1[0])
-#define py (p1[1])
-
 // Get destination pixel values
-#define get(x,y)  ( saturate(tex2D(s0, tex + float2( x*px, y*py)).rgb) )
+#define get(x,y)  ( saturate(tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))).rgb) )
 
 // Compute diff
 #define b_diff(z) ( abs(blur-c[z]) )
@@ -49,18 +45,14 @@ float4 p1  : register(c1);
 float4 main(float2 tex : TEXCOORD0) : COLOR {
 
 	// Get points and saturate out of range values (BTB & WTW)
-	// [                c22               ]
-	// [           c24, c9,  c23          ]
-	// [      c21, c1,  c2,  c3, c18      ]
-	// [ c19, c10, c4,  c0,  c5, c11, c16 ]
-	// [      c20, c6,  c7,  c8, c17      ]
-	// [           c15, c12, c14          ]
-	// [                c13               ]
-	float3 c[25] = { get( 0, 0), get(-1,-1), get( 0,-1), get( 1,-1), get(-1, 0),
+	// [                c9                ]
+	// [           c1,  c2,  c3           ]
+	// [      c10, c4,  c0,  c5, c11      ]
+	// [           c6,  c7,  c8           ]
+	// [                c12               ]
+	float3 c[13] = { get( 0, 0), get(-1,-1), get( 0,-1), get( 1,-1), get(-1, 0),
 	                 get( 1, 0), get(-1, 1), get( 0, 1), get( 1, 1), get( 0,-2),
-	                 get(-2, 0), get( 2, 0), get( 0, 2), get( 0, 3), get( 1, 2),
-	                 get(-1, 2), get( 3, 0), get( 2, 1), get( 2,-1), get(-3, 0),
-	                 get(-2, 1), get(-2,-1), get( 0,-3), get( 1,-2), get(-1,-2) };
+	                 get(-2, 0), get( 2, 0), get( 0, 2) };
 
 	// Blur, gauss 3x3
 	float3 blur   = (2*(c[2]+c[4]+c[5]+c[7]) + (c[1]+c[3]+c[6]+c[8]) + 4*c[0])/16;
