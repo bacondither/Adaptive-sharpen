@@ -59,7 +59,7 @@ float2 p1  : register(c1);
 
 //-------------------------------------------------------------------------------------------------
 #define w_offset        2.0                  // Edge channel offset, must be the same in all passes
-#define bounds_check    true                 // If edge data is ouside bounds, make pixels green
+#define bounds_check    true                 // If edge data is outside bounds, make pixels green
 //-------------------------------------------------------------------------------------------------
 
 // Saturation loss reduction
@@ -93,10 +93,10 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 
 	if (bounds_check == true)
 	{
-		if (c_edge > 32 || c_edge < -0.5  ) { return float4(0, 1, 0, alpha_out); }
+		if (c_edge > 32 || c_edge < -0.5) { return float4( 0, 1, 0, alpha_out ); }
 	}
 
-	// Get points, saturate colour data in c[0]
+	// Get points, clip out of range colour data in c[0]
 	// [                c22               ]
 	// [           c24, c9,  c23          ]
 	// [      c21, c1,  c2,  c3, c18      ]
@@ -121,13 +121,13 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	// [    w, w, x, z, z    ]
 	// [       w, x, z       ]
 	// [          x          ]
-	float var = soft_if(c[2].w,c[9].w,c[22].w) *soft_if(c[7].w,c[12].w,c[13].w)  // x dir
+	float sbe = soft_if(c[2].w,c[9].w,c[22].w) *soft_if(c[7].w,c[12].w,c[13].w)  // x dir
 	          + soft_if(c[4].w,c[10].w,c[19].w)*soft_if(c[5].w,c[11].w,c[16].w)  // y dir
 	          + soft_if(c[1].w,c[24].w,c[21].w)*soft_if(c[8].w,c[14].w,c[17].w)  // z dir
 	          + soft_if(c[3].w,c[23].w,c[18].w)*soft_if(c[6].w,c[20].w,c[15].w); // w dir
 
-	float s[2] = { lerp( L_compr_low, L_compr_high, smoothstep(2, 3.1, var) ),
-	               lerp( D_compr_low, D_compr_high, smoothstep(2, 3.1, var) ) };
+	float s[2] = { lerp( L_compr_low, L_compr_high, smoothstep(2, 3.1, sbe) ),
+	               lerp( D_compr_low, D_compr_high, smoothstep(2, 3.1, sbe) ) };
 
 	// RGB to luma
 	float c0_Y = CtL(c[0]);
@@ -216,12 +216,12 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 		}
 	}
 
-	float nmax = max(((luma[22] + luma[23]*2 + luma[24])/4), c0_Y);
-	float nmin = min(((luma[0]  + luma[1]*2  + luma[2])/4),  c0_Y);
+	float nmax = (max(luma[22] + luma[23]*2, c0_Y*3) + luma[24])/4;
+	float nmin = (min(luma[2]  + luma[1]*2,  c0_Y*3) + luma[0])/4;
 
 	// Calculate tanh scale factor, pos/neg
-	float nmax_scale = min(((nmax - c0_Y) + L_overshoot), max_scale_lim);
-	float nmin_scale = min(((c0_Y - nmin) + D_overshoot), max_scale_lim);
+	float nmax_scale = min((abs(nmax - c0_Y) + L_overshoot), max_scale_lim);
+	float nmin_scale = min((abs(c0_Y - nmin) + D_overshoot), max_scale_lim);
 
 	// Soft limit sharpening with tanh, lerp to control maximum compression
 	sharpdiff = lerp(  (soft_lim(max(sharpdiff, 0), nmax_scale)), max(sharpdiff, 0), s[0] )

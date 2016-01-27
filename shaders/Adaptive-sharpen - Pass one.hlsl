@@ -44,7 +44,7 @@ float2 p1  : register(c1);
 
 float4 main(float2 tex : TEXCOORD0) : COLOR {
 
-	// Get points and saturate out of range values (BTB & WTW)
+	// Get points and clip out of range values (BTB & WTW)
 	// [                c9                ]
 	// [           c1,  c2,  c3           ]
 	// [      c10, c4,  c0,  c5, c11      ]
