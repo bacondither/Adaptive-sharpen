@@ -178,12 +178,12 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 		float x       = saturate((c[order[pix]].w - w_offset - 0.01)/0.11);
 		float lowth   = x*x*(2.99 - 2*x) + 0.01;
 
-		neg_laplace  += pow(luma[order[pix]] + 0.064, 2.4)*(weights[pix]*lowth);
+		neg_laplace  += pow(luma[order[pix]] + 0.06, 2.4)*(weights[pix]*lowth);
 		weightsum    += weights[pix]*lowth;
 		lowthsum     += lowth;
 	}
 
-	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.064;
+	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.06;
 
 	// Compute sharpening magnitude function
 	float sharpen_val = (lowthsum/12)*(curve_height/(curveslope*pow(abs(c_edge), 3.5) + 0.5));
