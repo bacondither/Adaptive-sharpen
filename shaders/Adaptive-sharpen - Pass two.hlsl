@@ -55,7 +55,7 @@ float2 p1  : register(c1);
 
 #define max_scale_lim   0.1                  // Abs change before max compression (0.1 = +-10%)
 
-#define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1
+#define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
 //-------------------------------------------------------------------------------------------------
 #define w_offset        2.0                  // Edge channel offset, must be the same in all passes
@@ -79,15 +79,15 @@ float2 p1  : register(c1);
 #define max4(a,b,c,d)  ( max(max(a,b), max(c,d)) )
 
 // Colour to luma, fast approx gamma
-#define CtL(RGB)       ( sqrt(dot(float3(0.256, 0.651, 0.093), saturate((RGB).rgb*abs(RGB).rgb))) )
+#define CtL(RGB)       ( sqrt(dot(float3(0.2558, 0.6511, 0.0931), saturate((RGB)*abs(RGB)).rgb)) )
 
 // Center pixel diff
 #define mdiff(a,b,c,d,e,f,g) ( abs(luma[g]-luma[a]) + abs(luma[g]-luma[b])			 \
                              + abs(luma[g]-luma[c]) + abs(luma[g]-luma[d])			 \
                              + 0.5*(abs(luma[g]-luma[e]) + abs(luma[g]-luma[f])) )
 
-float4 main(float2 tex : TEXCOORD0) : COLOR {
-
+float4 main(float2 tex : TEXCOORD0) : COLOR
+{
 	float4 orig  = tex2D(s0, tex);
 	float c_edge = orig.w - w_offset;
 
@@ -142,7 +142,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	float3 w2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
 
 	// Transition to a concave kernel if the center edge val is above thr
-	float3 dW = pow(lerp( w1, w2, smoothstep( 0.3, 0.6, c_edge)), 2);
+	float3 dW = pow(lerp( w1, w2, smoothstep(0.3, 0.6, c_edge) ), 2);
 
 	float mdiff_c0  = 0.02 + 3*( abs(luma[0]-luma[2]) + abs(luma[0]-luma[4])
 	                           + abs(luma[0]-luma[5]) + abs(luma[0]-luma[7])
@@ -224,8 +224,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR {
 	float nmin_scale = min((abs(c0_Y - nmin) + D_overshoot), max_scale_lim);
 
 	// Soft limit sharpening with tanh, lerp to control maximum compression
-	sharpdiff = lerp(  (soft_lim(max(sharpdiff, 0), nmax_scale)), max(sharpdiff, 0), s[0] )
-	          + lerp( -(soft_lim(min(sharpdiff, 0), nmin_scale)), min(sharpdiff, 0), s[1] );
+	sharpdiff = lerp(  (soft_lim( max(sharpdiff, 0), nmax_scale )), max(sharpdiff, 0), s[0] )
+	          + lerp( -(soft_lim( min(sharpdiff, 0), nmin_scale )), min(sharpdiff, 0), s[1] );
 
 	if (video_level_out == true)
 	{

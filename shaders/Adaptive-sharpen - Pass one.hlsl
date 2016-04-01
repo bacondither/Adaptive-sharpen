@@ -40,10 +40,10 @@ float2 p1  : register(c1);
 #define get(x,y)  ( saturate(tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))).rgb) )
 
 // Compute diff
-#define b_diff(z) ( abs(blur-c[z]) )
+#define b_diff(z) ( abs(blur - c[z]) )
 
-float4 main(float2 tex : TEXCOORD0) : COLOR {
-
+float4 main(float2 tex : TEXCOORD0) : COLOR
+{
 	// Get points and clip out of range values (BTB & WTW)
 	// [                c9                ]
 	// [           c1,  c2,  c3           ]
