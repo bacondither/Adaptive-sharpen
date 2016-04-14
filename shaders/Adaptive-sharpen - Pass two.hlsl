@@ -93,7 +93,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 
 	if (bounds_check == true)
 	{
-		if (c_edge > 32 || c_edge < -0.5) { return float4( 0, 1, 0, alpha_out ); }
+		if (c_edge > 32 || c_edge < -0.5) { return float4( 0, 1.0, 0, alpha_out ); }
 	}
 
 	// Get points, clip out of range colour data in c[0]
@@ -138,8 +138,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                   CtL(c[19]), CtL(c[20]), CtL(c[21]), CtL(c[22]), CtL(c[23]), CtL(c[24]) };
 
 	// Precalculated default squared kernel weights
-	float3 w1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
-	float3 w2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
+	static const float3 w1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
+	static const float3 w2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
 
 	// Transition to a concave kernel if the center edge val is above thr
 	float3 dW = pow(lerp( w1, w2, smoothstep(0.3, 0.6, c_edge) ), 2);
@@ -176,7 +176,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	for (int pix = 0; pix < 12; ++pix)
 	{
 		float x       = saturate((c[order[pix]].w - w_offset - 0.01)/0.11);
-		float lowth   = x*x*(2.99 - 2*x) + 0.01;
+		float lowth   = x*x*(2.97 - 1.98*x) + 0.01;
 
 		neg_laplace  += pow(luma[order[pix]] + 0.06, 2.4)*(weights[pix]*lowth);
 		weightsum    += weights[pix]*lowth;
