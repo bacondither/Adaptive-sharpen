@@ -26,7 +26,7 @@
 
 // Second pass, MUST BE PLACED IMMEDIATELY AFTER THE FIRST PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2016-01-12 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2016-05-04 - (requires ps >= 3.0)
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
@@ -73,7 +73,7 @@ float2 p1  : register(c1);
 
 // Get destination pixel values
 #define get(x,y)       ( tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))) )
-#define sat(input)     ( float4(saturate((input).xyz), (input).w) )
+#define sat(inp)       ( float4(saturate((inp).xyz), (inp).w) )
 
 // Maximum of four values
 #define max4(a,b,c,d)  ( max(max(a,b), max(c,d)) )
@@ -93,7 +93,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 
 	if (bounds_check == true)
 	{
-		if (c_edge > 32 || c_edge < -0.5) { return float4( 0, 1.0, 0, alpha_out ); }
+		if (c_edge > 24 || c_edge < -0.5) { return float4( 0, 1.0, 0, alpha_out ); }
 	}
 
 	// Get points, clip out of range colour data in c[0]
@@ -142,7 +142,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	static const float3 w2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
 
 	// Transition to a concave kernel if the center edge val is above thr
-	float3 dW = pow(lerp( w1, w2, smoothstep(0.3, 0.6, c_edge) ), 2);
+	float3 dW = pow(lerp( w1, w2, smoothstep(0.3, 0.8, c_edge) ), 2.0);
 
 	float mdiff_c0  = 0.02 + 3*( abs(luma[0]-luma[2]) + abs(luma[0]-luma[4])
 	                           + abs(luma[0]-luma[5]) + abs(luma[0]-luma[7])

@@ -26,7 +26,7 @@
 
 // First pass, MUST BE PLACED IMMEDIATELY BEFORE THE SECOND PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2016-01-12 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2016-05-04 - (requires ps >= 3.0)
 // Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
@@ -59,7 +59,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float  blur_Y = (blur.r/3 + blur.g/3 + blur.b/3);
 
 	// Contrast compression, center = 0.5, scaled to 1/3
-	float c_comp = saturate(0.266666681f + 0.9*pow(2, (-7.4*blur_Y)));
+	float c_comp = saturate(0.266666681f + 0.9*pow(2.0, (-7.4*blur_Y)));
 
 	// Edge detection
 	// Matrix weights
