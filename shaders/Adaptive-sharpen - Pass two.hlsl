@@ -144,21 +144,21 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	// Transition to a concave kernel if the center edge val is above thr
 	float3 dW = pow(lerp( w1, w2, smoothstep(0.3, 0.8, c_edge) ), 2.0);
 
-	float mdiff_c0  = 0.02 + 3*( abs(luma[0]-luma[2]) + abs(luma[0]-luma[4])
-	                           + abs(luma[0]-luma[5]) + abs(luma[0]-luma[7])
-	                           + 0.25*(abs(luma[0]-luma[1]) + abs(luma[0]-luma[3])
-	                                  +abs(luma[0]-luma[6]) + abs(luma[0]-luma[8])) );
+	float mdiff_c0 = 0.02 + 3*( abs(luma[0]-luma[2]) + abs(luma[0]-luma[4])
+	                          + abs(luma[0]-luma[5]) + abs(luma[0]-luma[7])
+	                          + 0.25*(abs(luma[0]-luma[1]) + abs(luma[0]-luma[3])
+	                                 +abs(luma[0]-luma[6]) + abs(luma[0]-luma[8])) );
 
 	// Use lower weights for pixels in a more active area relative to center pixel area.
-	float weights[12]  = { ( dW.x ), ( dW.x ), ( dW.x ), ( dW.x ), // c2, // c4, // c5, // c7
-	                       ( min(mdiff_c0/mdiff(24, 21, 2,  4,  9,  10, 1),  dW.y) ),   // c1
-	                       ( min(mdiff_c0/mdiff(23, 18, 5,  2,  9,  11, 3),  dW.y) ),   // c3
-	                       ( min(mdiff_c0/mdiff(4,  20, 15, 7,  10, 12, 6),  dW.y) ),   // c6
-	                       ( min(mdiff_c0/mdiff(5,  7,  17, 14, 12, 11, 8),  dW.y) ),   // c8
-	                       ( min(mdiff_c0/mdiff(2,  24, 23, 22, 1,  3,  9),  dW.z) ),   // c9
-	                       ( min(mdiff_c0/mdiff(20, 19, 21, 4,  1,  6,  10), dW.z) ),   // c10
-	                       ( min(mdiff_c0/mdiff(17, 5,  18, 16, 3,  8,  11), dW.z) ),   // c11
-	                       ( min(mdiff_c0/mdiff(13, 15, 7,  14, 6,  8,  12), dW.z) ) }; // c12
+	float weights[12] = { ( dW.x ), ( dW.x ), ( dW.x ), ( dW.x ), // c2, // c4, // c5, // c7
+	                      ( min(mdiff_c0/mdiff(24, 21, 2,  4,  9,  10, 1),  dW.y) ),   // c1
+	                      ( min(mdiff_c0/mdiff(23, 18, 5,  2,  9,  11, 3),  dW.y) ),   // c3
+	                      ( min(mdiff_c0/mdiff(4,  20, 15, 7,  10, 12, 6),  dW.y) ),   // c6
+	                      ( min(mdiff_c0/mdiff(5,  7,  17, 14, 12, 11, 8),  dW.y) ),   // c8
+	                      ( min(mdiff_c0/mdiff(2,  24, 23, 22, 1,  3,  9),  dW.z) ),   // c9
+	                      ( min(mdiff_c0/mdiff(20, 19, 21, 4,  1,  6,  10), dW.z) ),   // c10
+	                      ( min(mdiff_c0/mdiff(17, 5,  18, 16, 3,  8,  11), dW.z) ),   // c11
+	                      ( min(mdiff_c0/mdiff(13, 15, 7,  14, 6,  8,  12), dW.z) ) }; // c12
 
 	weights[4] = (max(max((weights[8]  + weights[9])/4,  weights[4]), 0.25) + weights[4])/2;
 	weights[5] = (max(max((weights[8]  + weights[10])/4, weights[5]), 0.25) + weights[5])/2;
@@ -175,12 +175,12 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	[unroll]
 	for (int pix = 0; pix < 12; ++pix)
 	{
-		float x       = saturate((c[order[pix]].w - w_offset - 0.01)/0.11);
-		float lowth   = x*x*(2.97 - 1.98*x) + 0.01;
+		float x      = saturate((c[order[pix]].w - w_offset - 0.01)/0.11);
+		float lowth  = x*x*(2.97 - 1.98*x) + 0.01;
 
-		neg_laplace  += pow(luma[order[pix]] + 0.06, 2.4)*(weights[pix]*lowth);
-		weightsum    += weights[pix]*lowth;
-		lowthsum     += lowth;
+		neg_laplace += pow(luma[order[pix]] + 0.06, 2.4)*(weights[pix]*lowth);
+		weightsum   += weights[pix]*lowth;
+		lowthsum    += lowth;
 	}
 
 	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.06;

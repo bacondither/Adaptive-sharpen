@@ -55,8 +55,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                 get(-2, 0), get( 2, 0), get( 0, 2) };
 
 	// Blur, gauss 3x3
-	float3 blur   = (2*(c[2]+c[4]+c[5]+c[7]) + (c[1]+c[3]+c[6]+c[8]) + 4*c[0])/16;
-	float  blur_Y = (blur.r/3 + blur.g/3 + blur.b/3);
+	float3 blur  = (2*(c[2]+c[4]+c[5]+c[7]) + (c[1]+c[3]+c[6]+c[8]) + 4*c[0])/16;
+	float blur_Y = (blur.r/3 + blur.g/3 + blur.b/3);
 
 	// Contrast compression, center = 0.5, scaled to 1/3
 	float c_comp = saturate(0.266666681f + 0.9*pow(2.0, (-7.4*blur_Y)));
