@@ -34,7 +34,7 @@ float2 p1  : register(c1);
 
 //--------------------------------------- Settings ------------------------------------------------
 
-#define curve_height    1.0                  // Main sharpening strength, POSITIVE VALUES ONLY!
+#define curve_height    1.0                  // Main control of sharpening strength, [>0]
                                              // 0.3 <-> 2.0 is a reasonable range of values
 
 #define video_level_out false                // True to preserve BTB & WTW (minor summation error)
@@ -43,17 +43,24 @@ float2 p1  : register(c1);
 //-------------------------------------------------------------------------------------------------
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
 
-#define curveslope      (curve_height*0.7)   // Sharpening curve slope, high edge values
+#define curveslope      0.5                  // Sharpening curve slope, high edge values
 
-#define L_overshoot     0.003                // Max light overshoot before max compression, >0!
-#define L_compr_low     0.167                // Max compression ratio, light overshoot (1/0.167=6x)
-#define L_compr_high    0.334                // -||- pixel surrounded by edges (1/0.334=3x)
+#define L_overshoot     0.003                // Max light overshoot before max compression [>0.001]
+#define L_compr_low     0.169                // Light compression, default (0.169=~9x)
+#define L_compr_high    0.337                // Light compression, surrounded by edges (0.337=~4x)
 
-#define D_overshoot     0.009                // Max dark overshoot before max compression, >0!
-#define D_compr_low     0.250                // Max compression ratio, dark overshoot (1/0.250=4x)
-#define D_compr_high    0.500                // -||- pixel surrounded by edges (1/0.500=2x)
+#define D_overshoot     0.009                // Max dark overshoot before max compression [>0.001]
+#define D_compr_low     0.253                // Dark compression, default (0.253=~6x)
+#define D_compr_high    0.504                // Dark compression, surrounded by edges (0.504=~2.5x)
 
-#define max_scale_lim   0.1                  // Abs change before max compression (0.1 = +-10%)
+#define max_scale_lim   0.1                  // Abs max change before compression (0.1=+-10%)
+
+#define dW_lothr        0.3                  // Start interpolating between W1 and W2
+#define dW_hithr        0.8                  // When dW is equal to W2
+
+#define lowthr_mxw      0.12                 // Edge value for max lowthr weight [>0.01]
+
+#define pm_p            0.75                 // Power mean p-value [>0 - 1.0] (0.5=sqrt)
 
 #define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
@@ -71,6 +78,9 @@ float2 p1  : register(c1);
 // Soft limit, modified tanh
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
 
+// Weighted power mean
+#define wpmean(a,b,c)  ( pow((c*pow(abs(a), pm_p) + (1-c)*pow(b, pm_p)), (1.0/pm_p)) )
+
 // Get destination pixel values
 #define get(x,y)       ( tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))) )
 #define sat(inp)       ( float4(saturate((inp).xyz), (inp).w) )
@@ -78,7 +88,7 @@ float2 p1  : register(c1);
 // Maximum of four values
 #define max4(a,b,c,d)  ( max(max(a,b), max(c,d)) )
 
-// Colour to luma, fast approx gamma
+// Colour to luma, fast approx gamma, avg of rec. 709 & 601 luma coeffs
 #define CtL(RGB)       ( sqrt(dot(float3(0.2558, 0.6511, 0.0931), saturate((RGB)*abs(RGB)).rgb)) )
 
 // Center pixel diff
@@ -126,8 +136,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	          + soft_if(c[1].w,c[24].w,c[21].w)*soft_if(c[8].w,c[14].w,c[17].w)  // z dir
 	          + soft_if(c[3].w,c[23].w,c[18].w)*soft_if(c[6].w,c[20].w,c[15].w); // w dir
 
-	float s[2] = { lerp( L_compr_low, L_compr_high, smoothstep(2, 3.1, sbe) ),
-	               lerp( D_compr_low, D_compr_high, smoothstep(2, 3.1, sbe) ) };
+	float s[2] = { lerp( L_compr_low, L_compr_high, saturate(smoothstep(2, 3.1, sbe)) ),
+	               lerp( D_compr_low, D_compr_high, saturate(smoothstep(2, 3.1, sbe)) ) };
 
 	// RGB to luma
 	float c0_Y = CtL(c[0]);
@@ -138,11 +148,11 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                   CtL(c[19]), CtL(c[20]), CtL(c[21]), CtL(c[22]), CtL(c[23]), CtL(c[24]) };
 
 	// Precalculated default squared kernel weights
-	static const float3 w1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
-	static const float3 w2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
+	const float3 W1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
+	const float3 W2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
 
 	// Transition to a concave kernel if the center edge val is above thr
-	float3 dW = pow(lerp( w1, w2, smoothstep(0.3, 0.8, c_edge) ), 2.0);
+	float3 dW = pow(lerp( W1, W2, smoothstep(dW_lothr, dW_hithr, c_edge) ), 2);
 
 	float mdiff_c0 = 0.02 + 3*( abs(luma[0]-luma[2]) + abs(luma[0]-luma[4])
 	                          + abs(luma[0]-luma[5]) + abs(luma[0]-luma[7])
@@ -150,46 +160,47 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                                 +abs(luma[0]-luma[6]) + abs(luma[0]-luma[8])) );
 
 	// Use lower weights for pixels in a more active area relative to center pixel area.
-	float weights[12] = { ( dW.x ), ( dW.x ), ( dW.x ), ( dW.x ), // c2, // c4, // c5, // c7
-	                      ( min(mdiff_c0/mdiff(24, 21, 2,  4,  9,  10, 1),  dW.y) ),   // c1
+	float weights[12] = { ( min(mdiff_c0/mdiff(24, 21, 2,  4,  9,  10, 1),  dW.y) ),   // c1
+	                      ( dW.x ),                                                    // c2
 	                      ( min(mdiff_c0/mdiff(23, 18, 5,  2,  9,  11, 3),  dW.y) ),   // c3
+	                      ( dW.x ),                                                    // c4
+	                      ( dW.x ),                                                    // c5
 	                      ( min(mdiff_c0/mdiff(4,  20, 15, 7,  10, 12, 6),  dW.y) ),   // c6
+	                      ( dW.x ),                                                    // c7
 	                      ( min(mdiff_c0/mdiff(5,  7,  17, 14, 12, 11, 8),  dW.y) ),   // c8
 	                      ( min(mdiff_c0/mdiff(2,  24, 23, 22, 1,  3,  9),  dW.z) ),   // c9
 	                      ( min(mdiff_c0/mdiff(20, 19, 21, 4,  1,  6,  10), dW.z) ),   // c10
 	                      ( min(mdiff_c0/mdiff(17, 5,  18, 16, 3,  8,  11), dW.z) ),   // c11
 	                      ( min(mdiff_c0/mdiff(13, 15, 7,  14, 6,  8,  12), dW.z) ) }; // c12
 
-	weights[4] = (max(max((weights[8]  + weights[9])/4,  weights[4]), 0.25) + weights[4])/2;
-	weights[5] = (max(max((weights[8]  + weights[10])/4, weights[5]), 0.25) + weights[5])/2;
-	weights[6] = (max(max((weights[9]  + weights[11])/4, weights[6]), 0.25) + weights[6])/2;
+	weights[0] = (max(max((weights[8]  + weights[9])/4,  weights[0]), 0.25) + weights[0])/2;
+	weights[2] = (max(max((weights[8]  + weights[10])/4, weights[2]), 0.25) + weights[2])/2;
+	weights[5] = (max(max((weights[9]  + weights[11])/4, weights[5]), 0.25) + weights[5])/2;
 	weights[7] = (max(max((weights[10] + weights[11])/4, weights[7]), 0.25) + weights[7])/2;
 
 	// Calculate the negative part of the laplace kernel and the low threshold weight
-	float lowthsum    = 0;
+	float lowthrsum   = 0;
 	float weightsum   = 0;
 	float neg_laplace = 0;
-
-	static const int order[12] = { 2, 4, 5, 7, 1, 3, 6, 8, 9, 10, 11, 12 };
 
 	[unroll]
 	for (int pix = 0; pix < 12; ++pix)
 	{
-		float x      = saturate((c[order[pix]].w - w_offset - 0.01)/0.11);
-		float lowth  = x*x*(2.97 - 1.98*x) + 0.01;
+		float x      = saturate((c[pix + 1].w - w_offset - 0.01)/(lowthr_mxw - 0.01));
+		float lowthr = x*x*(2.97 - 1.98*x) + 0.01; // x*x((3.0-c*3) - (2.0-c*2)*x) + c
 
-		neg_laplace += pow(luma[order[pix]] + 0.06, 2.4)*(weights[pix]*lowth);
-		weightsum   += weights[pix]*lowth;
-		lowthsum    += lowth;
+		neg_laplace += pow(luma[pix + 1] + 0.06, 2.4)*(weights[pix]*lowthr);
+		weightsum   += weights[pix]*lowthr;
+		lowthrsum   += lowthr/12;
 	}
 
 	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.06;
 
 	// Compute sharpening magnitude function
-	float sharpen_val = (lowthsum/12)*(curve_height/(curveslope*pow(abs(c_edge), 3.5) + 0.5));
+	float sharpen_val = (curve_height/(curve_height*curveslope*pow(abs(c_edge), 3.5) + 0.5));
 
 	// Calculate sharpening diff and scale
-	float sharpdiff = (c0_Y - neg_laplace)*(sharpen_val*0.8 + 0.01);
+	float sharpdiff = (c0_Y - neg_laplace)*(lowthrsum*sharpen_val*0.8 + 0.01);
 
 	// Calculate local near min & max, partial sort
 	[unroll]
@@ -223,9 +234,9 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmax_scale = min((abs(nmax - c0_Y) + L_overshoot), max_scale_lim);
 	float nmin_scale = min((abs(c0_Y - nmin) + D_overshoot), max_scale_lim);
 
-	// Soft limit sharpening with tanh, lerp to control maximum compression
-	sharpdiff = lerp(  (soft_lim( max(sharpdiff, 0), nmax_scale )), max(sharpdiff, 0), s[0] )
-	          + lerp( -(soft_lim( min(sharpdiff, 0), nmin_scale )), min(sharpdiff, 0), s[1] );
+	// Soft limited antiringing with tanh, wpmean to control maximum compression slope
+	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim(max(sharpdiff, 0), nmax_scale ), s[0] )
+	          - wpmean( min(sharpdiff, 0), soft_lim(min(sharpdiff, 0), nmin_scale ), s[1] );
 
 	if (video_level_out == true)
 	{
