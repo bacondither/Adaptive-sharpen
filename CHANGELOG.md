@@ -1,9 +1,15 @@
+##2016-07-10
+- Replaced lerp used for under/overshoot compression with a weighted power mean, reduces some ringing.
+- Corrected minor error in the custom smoothstep function.
+- Slightly improved weighting for nmax & nmin.
+- Tweaked some parameters.
+
 ##2016-01-12
 - Faster sorting algorithm.
 
 
 ##2016-01-07
-- Fix compiler warning X3571 and handle a possible divide by zero.
+- Fixed compiler warning X3571 and handle a possible divide by zero.
 
 
 ##2015-12-09
