@@ -4,6 +4,7 @@
 - Slightly improved weighting for nmax & nmin.
 - Tweaked some parameters.
 
+
 ##2016-01-12
 - Faster sorting algorithm.
 
@@ -44,5 +45,5 @@
 - No real change from the last version, just changed some stupid variable names and comments.
 
 
-##2015-04-05##
+##2015-04-05
 - First release.
