@@ -34,7 +34,7 @@ float2 p1  : register(c1);
 
 //--------------------------------------- Settings ------------------------------------------------
 
-#define curve_height    1.0                  // Main control of sharpening strength, [>0]
+#define curve_height    1.0                  // Main control of sharpening strength [>0]
                                              // 0.3 <-> 2.0 is a reasonable range of values
 
 #define video_level_out false                // True to preserve BTB & WTW (minor summation error)
@@ -58,7 +58,7 @@ float2 p1  : register(c1);
 #define dW_lothr        0.3                  // Start interpolating between W1 and W2
 #define dW_hithr        0.8                  // When dW is equal to W2
 
-#define lowthr_mxw      0.12                 // Edge value for max lowthr weight [>0.01]
+#define lowthr_mxw      0.11                 // Edge value for max lowthr weight [>0.01]
 
 #define pm_p            0.75                 // Power mean p-value [>0 - 1.0] (0.5=sqrt)
 
@@ -72,8 +72,8 @@ float2 p1  : register(c1);
 // Saturation loss reduction
 #define minim_satloss  ( (c[0].rgb*min((c0_Y + sharpdiff)/c0_Y, 1e+5) + (c[0].rgb + sharpdiff))/2 )
 
-// Soft if, fast
-#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge) + 0.0067) - 0.85) )
+// Soft if, fast approx
+#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge) + 0.003) - 0.85) )
 
 // Soft limit, modified tanh
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
@@ -159,7 +159,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                          + 0.25*(abs(luma[0]-luma[1]) + abs(luma[0]-luma[3])
 	                                 +abs(luma[0]-luma[6]) + abs(luma[0]-luma[8])) );
 
-	// Use lower weights for pixels in a more active area relative to center pixel area.
+	// Use lower weights for pixels in a more active area relative to center pixel area
+	// This results in narrower and less visible overshoots around sharp edges
 	float weights[12] = { ( min(mdiff_c0/mdiff(24, 21, 2,  4,  9,  10, 1),  dW.y) ),   // c1
 	                      ( dW.x ),                                                    // c2
 	                      ( min(mdiff_c0/mdiff(23, 18, 5,  2,  9,  11, 3),  dW.y) ),   // c3
@@ -197,7 +198,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.06;
 
 	// Compute sharpening magnitude function
-	float sharpen_val = (curve_height/(curve_height*curveslope*pow(abs(c_edge), 3.5) + 0.5));
+	float sharpen_val = curve_height/(curve_height*curveslope*pow(abs(c_edge), 3.5) + 0.5);
 
 	// Calculate sharpening diff and scale
 	float sharpdiff = (c0_Y - neg_laplace)*(lowthrsum*sharpen_val*0.8 + 0.01);
@@ -234,9 +235,9 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmax_scale = min((abs(nmax - c0_Y) + L_overshoot), max_scale_lim);
 	float nmin_scale = min((abs(c0_Y - nmin) + D_overshoot), max_scale_lim);
 
-	// Soft limited antiringing with tanh, wpmean to control maximum compression slope
-	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim(max(sharpdiff, 0), nmax_scale ), s[0] )
-	          - wpmean( min(sharpdiff, 0), soft_lim(min(sharpdiff, 0), nmin_scale ), s[1] );
+	// Soft limited antiringing with tanh, wpmean to control compression slope
+	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), s[0] )
+	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), s[1] );
 
 	if (video_level_out == true)
 	{
