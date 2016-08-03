@@ -45,11 +45,11 @@ float2 p1  : register(c1);
 
 #define curveslope      0.5                  // Sharpening curve slope, high edge values
 
-#define L_overshoot     0.003                // Max light overshoot before max compression [>0.001]
+#define L_overshoot     0.003                // Max light overshoot before compression [>0.001]
 #define L_compr_low     0.169                // Light compression, default (0.169=~9x)
 #define L_compr_high    0.337                // Light compression, surrounded by edges (0.337=~4x)
 
-#define D_overshoot     0.009                // Max dark overshoot before max compression [>0.001]
+#define D_overshoot     0.009                // Max dark overshoot before compression [>0.001]
 #define D_compr_low     0.253                // Dark compression, default (0.253=~6x)
 #define D_compr_high    0.504                // Dark compression, surrounded by edges (0.504=~2.5x)
 
@@ -60,7 +60,7 @@ float2 p1  : register(c1);
 
 #define lowthr_mxw      0.11                 // Edge value for max lowthr weight [>0.01]
 
-#define pm_p            0.75                 // Power mean p-value [>0 - 1.0] (0.5=sqrt)
+#define pm_p            0.75                 // Power mean p-value [>0-1.0]
 
 #define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
