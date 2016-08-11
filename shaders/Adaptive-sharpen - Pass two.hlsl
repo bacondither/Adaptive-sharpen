@@ -147,7 +147,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                   CtL(c[13]), CtL(c[14]), CtL(c[15]), CtL(c[16]), CtL(c[17]), CtL(c[18]),
 	                   CtL(c[19]), CtL(c[20]), CtL(c[21]), CtL(c[22]), CtL(c[23]), CtL(c[24]) };
 
-	// Precalculated default squared kernel weights
+	// Pre-calculated default squared kernel weights
 	const float3 W1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
 	const float3 W2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
 
@@ -235,7 +235,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmax_scale = min((abs(nmax - c0_Y) + L_overshoot), max_scale_lim);
 	float nmin_scale = min((abs(c0_Y - nmin) + D_overshoot), max_scale_lim);
 
-	// Soft limited antiringing with tanh, wpmean to control compression slope
+	// Soft limited anti-ringing with tanh, wpmean to control compression slope
 	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), s[0] )
 	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), s[1] );
 
