@@ -37,10 +37,10 @@ float2 p1  : register(c1);
 //---------------------------------------------------------------------------------
 
 // Get destination pixel values
-#define get(x,y)  ( saturate(tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))).rgb) )
+#define get(x,y)    ( saturate(tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))).rgb) )
 
 // Compute diff
-#define b_diff(z) ( abs(blur - c[z]) )
+#define b_diff(pix) ( abs(blur - c[pix]) )
 
 float4 main(float2 tex : TEXCOORD0) : COLOR
 {
@@ -59,18 +59,19 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float blur_Y = (blur.r/3 + blur.g/3 + blur.b/3);
 
 	// Contrast compression, center = 0.5, scaled to 1/3
-	float c_comp = saturate(0.266666681f + 0.9*pow(2.0, (-7.4*blur_Y)));
+	float c_comp = saturate(0.266666681f + 0.9*exp2(-7.4*blur_Y));
 
 	// Edge detection
-	// Matrix weights
-	// [         1/4,        ]
-	// [      1,  1,  1      ]
-	// [ 1/4, 1,  1,  1, 1/4 ]
-	// [      1,  1,  1      ]
-	// [         1/4         ]
-	float edge = length( b_diff(0) + b_diff(1) + b_diff(2) + b_diff(3)
-	                   + b_diff(4) + b_diff(5) + b_diff(6) + b_diff(7) + b_diff(8)
-	                   + 0.25*(b_diff(9) + b_diff(10) + b_diff(11) + b_diff(12)) );
+	// Relative matrix weights
+	// [          1,         ]
+	// [      4,  5,  4      ]
+	// [  1,  5,  6,  5,  1  ]
+	// [      4,  5,  4      ]
+	// [          1          ]
+	float edge = length( 1.38*(b_diff(0))
+	                   + 1.15*(b_diff(2) + b_diff(4)  + b_diff(5)  + b_diff(7))
+	                   + 0.92*(b_diff(1) + b_diff(3)  + b_diff(6)  + b_diff(8))
+	                   + 0.23*(b_diff(9) + b_diff(10) + b_diff(11) + b_diff(12)) );
 
 	return float4( (tex2D(s0, tex).rgb), (edge*c_comp + w_offset) );
 }
