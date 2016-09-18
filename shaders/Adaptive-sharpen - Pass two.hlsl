@@ -43,7 +43,7 @@ float2 p1  : register(c1);
 //-------------------------------------------------------------------------------------------------
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
 
-#define curveslope      0.5                  // Sharpening curve slope, high edge values
+#define curveslope      0.4                  // Sharpening curve slope, high edge values
 
 #define L_overshoot     0.003                // Max light overshoot before compression [>0.001]
 #define L_compr_low     0.169                // Light compression, default (0.169=~9x)
@@ -232,8 +232,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmin = (min(luma[2]  + luma[1]*2,  c0_Y*3) + luma[0])/4;
 
 	// Calculate tanh scale factor, pos/neg
-	float nmax_scale = min((abs(nmax - c0_Y) + L_overshoot), max_scale_lim);
-	float nmin_scale = min((abs(c0_Y - nmin) + D_overshoot), max_scale_lim);
+	float nmax_scale = min(nmax - c0_Y + min(L_overshoot, 1.0001 - nmax), max_scale_lim);
+	float nmin_scale = min(c0_Y - nmin + min(D_overshoot, 0.0001 + nmin), max_scale_lim);
 
 	// Soft limited anti-ringing with tanh, wpmean to control compression slope
 	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), s[0] )
