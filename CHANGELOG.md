@@ -1,5 +1,10 @@
+##2016-09-20
+- Updated edge-detection weights, slightly better for high-frequency content.
+- Minor tweaks.
+
+
 ##2016-07-10
-- Replaced lerp used for under/overshoot compression with a weighted power mean, reduces some ringing.
+- Replaced lerp used for overshoot compression with a weighted power mean, reduces some ringing.
 - Corrected minor error in the custom smoothstep function.
 - Slightly improved weighting for nmax & nmin.
 - Tweaked some parameters.
@@ -31,7 +36,7 @@
 
 ##2015-08-19
 - 2-pass algorithm.
-- Better overshoot contol.
+- Better overshoot control.
 - Reduced saturation loss on pixels made brighter.
 
 
