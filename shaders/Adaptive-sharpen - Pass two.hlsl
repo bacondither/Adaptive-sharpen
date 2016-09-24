@@ -79,7 +79,7 @@ float2 p1  : register(c1);
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
 
 // Weighted power mean
-#define wpmean(a,b,w)  ( pow((w*pow(abs(a), pm_p) + (1-w)*pow(b, pm_p)), (1.0/pm_p)) )
+#define wpmean(a,b,w)  ( pow((w*pow(abs(a), pm_p) + (1-w)*pow(abs(b), pm_p)), (1.0/pm_p)) )
 
 // Get destination pixel values
 #define get(x,y)       ( tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))) )
