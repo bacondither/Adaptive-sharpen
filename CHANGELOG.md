@@ -1,4 +1,4 @@
-##2016-09-20
+##2016-09-24
 - Updated edge-detection weights, slightly better for high-frequency content.
 - Minor tweaks.
 

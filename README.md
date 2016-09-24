@@ -10,5 +10,5 @@ Settings are stored in the second pass file.
 <i>curve_height</i> is the main knob for controlling sharpening strength.
 
 <B>Caution!</B> If the shader passes are added in the wrong order or the alpha channel is truncated, it will return a green screen.
- 
+
 Forum thread - http://forum.doom9.org/showthread.php?t=172131
