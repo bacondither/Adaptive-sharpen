@@ -69,9 +69,6 @@ float2 p1  : register(c1);
 #define bounds_check    true                 // If edge data is outside bounds, make pixels green
 //-------------------------------------------------------------------------------------------------
 
-// Saturation loss reduction
-#define minim_satloss  ( (c[0].rgb*min((c0_Y + sharpdiff)/c0_Y, 1e+5) + (c[0].rgb + sharpdiff))/2 )
-
 // Soft if, fast approx
 #define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge) + 0.003) - 0.85) )
 
@@ -79,7 +76,7 @@ float2 p1  : register(c1);
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
 
 // Weighted power mean
-#define wpmean(a,b,w)  ( pow((w*pow(abs(a), pm_p) + (1-w)*pow(abs(b), pm_p)), (1.0/pm_p)) )
+#define wpmean(a,b,w)  ( pow((w*pow(abs(a), pm_p) + abs(1-w)*pow(abs(b), pm_p)), (1.0/pm_p)) )
 
 // Get destination pixel values
 #define get(x,y)       ( tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))) )
@@ -136,8 +133,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	          + soft_if(c[1].w,c[24].w,c[21].w)*soft_if(c[8].w,c[14].w,c[17].w)  // z dir
 	          + soft_if(c[3].w,c[23].w,c[18].w)*soft_if(c[6].w,c[20].w,c[15].w); // w dir
 
-	float cs[2] = { lerp( L_compr_low, L_compr_high, saturate(smoothstep(2, 3.1, sbe)) ),
-	                lerp( D_compr_low, D_compr_high, saturate(smoothstep(2, 3.1, sbe)) ) };
+	float2 cs = lerp( float2(L_compr_low,  D_compr_low),
+	                  float2(L_compr_high, D_compr_high), smoothstep(2, 3.1, sbe) );
 
 	// RGB to luma
 	float c0_Y = CtL(c[0]);
@@ -236,22 +233,12 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmin_scale = min(c0_Y - nmin + min(D_overshoot, 0.0001 + nmin), max_scale_lim);
 
 	// Soft limited anti-ringing with tanh, wpmean to control compression slope
-	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), cs[0] )
-	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), cs[1] );
+	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), cs.x )
+	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), cs.y );
 
-	if (video_level_out == true)
-	{
-		[flatten]
-		if (sharpdiff > 0) { return float4( orig.rgb + (minim_satloss - c[0].rgb), alpha_out ); }
+	// Compensate for saturation loss/gain while making pixels brighter/darker
+	float satmul = max(1 + sharpdiff*1.5, 1.0/(1 + abs(sharpdiff)*0.5));
+	float3 res = c0_Y + sharpdiff + (c[0].rgb - c0_Y)*satmul;
 
-		else { return float4( (orig.rgb + sharpdiff), alpha_out ); }
-	}
-
-	else // Normal path
-	{
-		[flatten]
-		if (sharpdiff > 0) { return float4( minim_satloss, alpha_out ); }
-
-		else { return float4( (c[0].rgb + sharpdiff), alpha_out ); }
-	}
+	return float4( (video_level_out == true ? orig.rgb + (res - c[0].rgb) : res), alpha_out );
 }
