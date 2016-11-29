@@ -70,7 +70,7 @@ float2 p1  : register(c1);
 //-------------------------------------------------------------------------------------------------
 
 // Soft if, fast approx
-#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset)/(saturate(maxedge) + 0.003) - 0.85) )
+#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset + 0.02)/(abs(maxedge) + 0.0001) - 0.85) )
 
 // Soft limit, modified tanh
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
