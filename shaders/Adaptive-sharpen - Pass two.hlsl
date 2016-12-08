@@ -70,7 +70,7 @@ float2 p1  : register(c1);
 //-------------------------------------------------------------------------------------------------
 
 // Soft if, fast approx
-#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset + 0.02)/(abs(maxedge) + 0.0001) - 0.85) )
+#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset + 0.05)/(abs(maxedge) + 0.02) - 0.85) )
 
 // Soft limit, modified tanh
 #define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
@@ -237,7 +237,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), cs.y );
 
 	// Compensate for saturation loss/gain while making pixels brighter/darker
-	float satmul = max(1 + sharpdiff*1.5, 1.0/(1 + abs(sharpdiff)*0.5));
+	float satmul = max(1 + sharpdiff*1.5, 1.0/(1 + abs(sharpdiff)*0.45));
 	float3 res = c0_Y + sharpdiff + (c[0].rgb - c0_Y)*satmul;
 
 	return float4( (video_level_out == true ? orig.rgb + (res - c[0].rgb) : res), alpha_out );
