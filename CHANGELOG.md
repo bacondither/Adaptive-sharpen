@@ -1,3 +1,8 @@
+##2016-12-07
+- Change how saturation is compensated for when brightness is changed.
+- Misc tweaks.
+
+
 ##2016-09-24
 - Updated edge-detection weights, slightly better for high-frequency content.
 - Minor tweaks.
