@@ -73,7 +73,7 @@ float2 p1  : register(c1);
 #define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset + 0.05)/(abs(maxedge) + 0.02) - 0.85) )
 
 // Soft limit, modified tanh
-#define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*16)/s) - 1)/(exp(2*min(abs(v), s*16)/s) + 1))*s )
+#define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*24)/s) - 1)/(exp(2*min(abs(v), s*24)/s) + 1))*s )
 
 // Weighted power mean
 #define wpmean(a,b,w)  ( pow((w*pow(abs(a), pm_p) + abs(1-w)*pow(abs(b), pm_p)), (1.0/pm_p)) )
