@@ -1,5 +1,9 @@
+##2017-01-22
+- Replaced the algorithm for saturation compensation.
+
+
 ##2016-12-07
-- Change how saturation is compensated for when brightness is changed.
+- Changed how saturation is compensated for when brightness is altered.
 - Misc tweaks.
 
 
