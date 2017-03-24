@@ -241,8 +241,9 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), cs.y );
 
 	// Compensate for saturation loss/gain while making pixels brighter/darker
-	float satmul = (max(c0_Y + sharpdiff, 0) + 0.03)/(c0_Y + 0.03);
-	float3 res = c0_Y + sharpdiff + (c[0].rgb - c0_Y)*satmul;
+	float sharpdiff_lim = saturate(c0_Y + sharpdiff) - c0_Y;
+	float satmul = (c0_Y + sharpdiff_lim + 0.03)/(c0_Y + 0.03);
+	float3 res = c0_Y + (sharpdiff_lim + sharpdiff)/2 + (c[0].rgb - c0_Y)*satmul;
 
 	return float4( (video_level_out == true ? orig.rgb + (res - c[0].rgb) : res), alpha_out );
 }
