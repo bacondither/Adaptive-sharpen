@@ -53,7 +53,8 @@ float2 p1  : register(c1);
 #define D_compr_low     0.253                // Dark compression, default (0.253=~6x)
 #define D_compr_high    0.504                // Dark compression, surrounded by edges (0.504=~2.5x)
 
-#define max_scale_lim   0.1                  // Abs max change before compression (0.1=+-10%)
+#define scale_lim       0.1                  // Abs max change before compression (0.1=+-10%)
+#define scale_cs        0.1                  // Compression slope above scale_lim
 
 #define dW_lothr        0.3                  // Start interpolating between W1 and W2
 #define dW_hithr        0.8                  // When dW is equal to W2
@@ -229,8 +230,11 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmin = (min(luma[2]  + luma[1]*2,  c0_Y*3) + luma[0])/4;
 
 	// Calculate tanh scale factor, pos/neg
-	float nmax_scale = min(nmax - c0_Y + min(L_overshoot, 1.0001 - nmax), max_scale_lim);
-	float nmin_scale = min(c0_Y - nmin + min(D_overshoot, 0.0001 + nmin), max_scale_lim);
+	float nmax_scale = nmax - c0_Y + min(L_overshoot, 1.0001 - nmax);
+	float nmin_scale = c0_Y - nmin + min(D_overshoot, 0.0001 + nmin);
+
+	nmax_scale = min(nmax_scale, scale_lim*(1 - scale_cs) + nmax_scale*scale_cs);
+	nmin_scale = min(nmin_scale, scale_lim*(1 - scale_cs) + nmin_scale*scale_cs);
 
 	// Soft limited anti-ringing with tanh, wpmean to control compression slope
 	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), cs.x )
