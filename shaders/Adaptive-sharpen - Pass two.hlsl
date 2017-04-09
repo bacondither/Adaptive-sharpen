@@ -54,7 +54,7 @@ float2 p1  : register(c1);
 #define D_compr_high    0.504                // Dark compression, surrounded by edges (0.504=~2.5x)
 
 #define scale_lim       0.1                  // Abs max change before compression (0.1=+-10%)
-#define scale_cs        0.1                  // Compression slope above scale_lim
+#define scale_cs        0.056                // Compression slope above scale_lim
 
 #define dW_lothr        0.3                  // Start interpolating between W1 and W2
 #define dW_hithr        0.8                  // When dW is equal to W2
@@ -84,7 +84,7 @@ float2 p1  : register(c1);
 #define sat(inp)       ( float4(saturate((inp).xyz), (inp).w) )
 
 // Maximum of four values
-#define max4(a,b,c,d)  ( max(max(a,b), max(c,d)) )
+#define max4(a,b,c,d)  ( max(max(a, b), max(c, d)) )
 
 // Colour to luma, fast approx gamma, avg of rec. 709 & 601 luma coeffs
 #define CtL(RGB)       ( sqrt(dot(float3(0.2558, 0.6511, 0.0931), saturate((RGB)*abs(RGB)).rgb)) )
