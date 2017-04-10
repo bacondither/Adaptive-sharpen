@@ -182,8 +182,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float weightsum   = 0;
 	float neg_laplace = 0;
 
-	[unroll]
-	for (int pix = 0; pix < 12; ++pix)
+	[unroll] for (int pix = 0; pix < 12; ++pix)
 	{
 		float x      = saturate((c[pix + 1].w - w_offset - 0.01)/(lowthr_mxw - 0.01));
 		float lowthr = x*x*(2.97 - 1.98*x) + 0.01; // x*x((3.0-c*3) - (2.0-c*2)*x) + c
@@ -202,8 +201,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float sharpdiff = (c0_Y - neg_laplace)*(lowthrsum*sharpen_val*0.8 + 0.01);
 
 	// Calculate local near min & max, partial sort
-	[unroll]
-	for (int i = 0; i < 3; ++i)
+	[unroll] for (int i = 0; i < 3; ++i)
 	{
 		float temp;
 
