@@ -26,8 +26,8 @@
 
 // Second pass, MUST BE PLACED IMMEDIATELY AFTER THE FIRST PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2017-01-22 - (requires ps >= 3.0)
-// Tuned for use post resize, EXPECTS FULL RANGE GAMMA LIGHT
+// Adaptive sharpen - version 2017-04-11 - (requires ps >= 3.0)
+// Tuned for use post-resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
 float2 p1  : register(c1);
@@ -53,7 +53,7 @@ float2 p1  : register(c1);
 #define D_compr_low     0.253                // Dark compression, default (0.253=~6x)
 #define D_compr_high    0.504                // Dark compression, surrounded by edges (0.504=~2.5x)
 
-#define scale_lim       0.1                  // Abs max change before compression (0.1=+-10%)
+#define scale_lim       0.1                  // Abs max change before compression [>0.01]
 #define scale_cs        0.056                // Compression slope above scale_lim
 
 #define dW_lothr        0.3                  // Start interpolating between W1 and W2
