@@ -39,7 +39,7 @@ float2 p1  : register(c1);
 // Get destination pixel values
 #define get(x,y)    ( saturate(tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))).rgb) )
 
-// Compute diff
+// Component-wise distance
 #define b_diff(pix) ( abs(blur - c[pix]) )
 
 float4 main(float2 tex : TEXCOORD0) : COLOR
