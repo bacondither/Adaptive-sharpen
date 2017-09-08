@@ -184,8 +184,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 
 	[unroll] for (int pix = 0; pix < 12; ++pix)
 	{
-		float x      = saturate((c[pix + 1].w - w_offset - 0.01)/(lowthr_mxw - 0.01));
-		float lowthr = x*x*(2.97 - 1.98*x) + 0.01; // x*x((3.0-c*3) - (2.0-c*2)*x) + c
+		float t      = saturate((c[pix + 1].w - w_offset - 0.01)/(lowthr_mxw - 0.01));
+		float lowthr = t*t*(2.97 - 1.98*t) + 0.01; // t*t((3 - a*3) - (2 - a*2)*t) + a
 
 		neg_laplace += pow(luma[pix + 1] + 0.06, 2.4)*(weights[pix]*lowthr);
 		weightsum   += weights[pix]*lowthr;
