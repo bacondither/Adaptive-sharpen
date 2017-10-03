@@ -66,7 +66,7 @@ float2 p1  : register(c1);
 #define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
 //-------------------------------------------------------------------------------------------------
-#define w_offset        2.0                  // Edge channel offset, must be the same in all passes
+#define w_offset        2.0                  // Edge channel offset, MUST BE THE SAME IN ALL PASSES
 #define bounds_check    true                 // If edge data is outside bounds, make pixels green
 //-------------------------------------------------------------------------------------------------
 
@@ -96,7 +96,7 @@ float2 p1  : register(c1);
 
 float4 main(float2 tex : TEXCOORD0) : COLOR
 {
-	float4 orig  = tex2D(s0, tex);
+	float4 orig  = get(0, 0);
 	float c_edge = orig.w - w_offset;
 
 	if (bounds_check == true)
@@ -147,7 +147,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 
 	// Pre-calculated default squared kernel weights
 	const float3 W1 = float3(0.5,           1.0, 1.41421356237); // 0.25, 1.0, 2.0
-	const float3 W2 = float3(0.86602540378, 1.0, 0.5477225575);  // 0.75, 1.0, 0.3
+	const float3 W2 = float3(0.86602540378, 1.0, 0.54772255751); // 0.75, 1.0, 0.3
 
 	// Transition to a concave kernel if the center edge val is above thr
 	float3 dW = pow(lerp( W1, W2, smoothstep(dW_lothr, dW_hithr, c_edge) ), 2);

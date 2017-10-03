@@ -33,7 +33,7 @@ sampler s0 : register(s0);
 float2 p1  : register(c1);
 
 //---------------------------------------------------------------------------------
-#define w_offset 2.0         // Edge channel offset, must be the same in all passes
+#define w_offset 2.0         // Edge channel offset, MUST BE THE SAME IN ALL PASSES
 //---------------------------------------------------------------------------------
 
 // Get destination pixel values
