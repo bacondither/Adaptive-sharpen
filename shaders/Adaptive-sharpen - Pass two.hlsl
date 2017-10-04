@@ -227,16 +227,17 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float nmax = (max(luma[22] + luma[23]*2, c0_Y*3) + luma[24])/4;
 	float nmin = (min(luma[2]  + luma[1]*2,  c0_Y*3) + luma[0])/4;
 
-	// Calculate tanh scale factor, pos/neg
-	float nmax_scale = nmax - c0_Y + min(L_overshoot, 1.0001 - nmax);
-	float nmin_scale = c0_Y - nmin + min(D_overshoot, 0.0001 + nmin);
+	// Calculate tanh scale factors
+	float min_dist  = min(abs(nmax - c0_Y), abs(c0_Y - nmin));
+	float pos_scale = min_dist + min(L_overshoot, 1.0001 - min_dist - c0_Y);
+	float neg_scale = min_dist + min(D_overshoot, 0.0001 + c0_Y - min_dist);
 
-	nmax_scale = min(nmax_scale, scale_lim*(1 - scale_cs) + nmax_scale*scale_cs);
-	nmin_scale = min(nmin_scale, scale_lim*(1 - scale_cs) + nmin_scale*scale_cs);
+	pos_scale = min(pos_scale, scale_lim*(1 - scale_cs) + pos_scale*scale_cs);
+	neg_scale = min(neg_scale, scale_lim*(1 - scale_cs) + neg_scale*scale_cs);
 
 	// Soft limited anti-ringing with tanh, wpmean to control compression slope
-	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), nmax_scale ), cs.x )
-	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), nmin_scale ), cs.y );
+	sharpdiff = wpmean( max(sharpdiff, 0), soft_lim( max(sharpdiff, 0), pos_scale ), cs.x )
+	          - wpmean( min(sharpdiff, 0), soft_lim( min(sharpdiff, 0), neg_scale ), cs.y );
 
 	// Compensate for saturation loss/gain while making pixels brighter/darker
 	float sharpdiff_lim = saturate(c0_Y + sharpdiff) - c0_Y;
