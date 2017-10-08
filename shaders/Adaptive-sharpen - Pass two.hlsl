@@ -43,7 +43,7 @@ float2 p1  : register(c1);
 //-------------------------------------------------------------------------------------------------
 // Defined values under this row are "optimal" DO NOT CHANGE IF YOU DO NOT KNOW WHAT YOU ARE DOING!
 
-#define curveslope      0.4                  // Sharpening curve slope, high edge values
+#define curveslope      0.5                  // Sharpening curve slope, high edge values
 
 #define L_overshoot     0.003                // Max light overshoot before compression [>0.001]
 #define L_compr_low     0.169                // Light compression, default (0.169=~9x)
@@ -195,10 +195,10 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	neg_laplace = pow(abs(neg_laplace/weightsum), (1.0/2.4)) - 0.06;
 
 	// Compute sharpening magnitude function
-	float sharpen_val = curve_height/(curve_height*curveslope*pow(abs(c_edge), 3.5) + 0.5);
+	float sharpen_val = curve_height/(curve_height*curveslope*pow(abs(c_edge), 3.5) + 0.625);
 
 	// Calculate sharpening diff and scale
-	float sharpdiff = (c0_Y - neg_laplace)*(lowthrsum*sharpen_val*0.8 + 0.01);
+	float sharpdiff = (c0_Y - neg_laplace)*(lowthrsum*sharpen_val + 0.01);
 
 	// Calculate local near min & max, partial sort
 	[unroll] for (int i = 0; i < 3; ++i)
