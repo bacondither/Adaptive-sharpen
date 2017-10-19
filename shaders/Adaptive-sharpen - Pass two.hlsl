@@ -61,7 +61,7 @@ float2 p1  : register(c1);
 
 #define lowthr_mxw      0.1                  // Edge value for max lowthr weight [>0.01]
 
-#define pm_p            (1.0/3.0)            // Power mean p-value [>0-1.0]
+#define pm_p            0.67                 // Power mean p-value [>0-1.0]
 
 #define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
