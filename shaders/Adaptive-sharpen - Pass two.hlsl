@@ -61,7 +61,7 @@ float2 p1  : register(c1);
 
 #define lowthr_mxw      0.1                  // Edge value for max lowthr weight [>0.01]
 
-#define pm_p            0.67                 // Power mean p-value [>0-1.0]
+#define pm_p            0.7                  // Power mean p-value [>0-1.0]
 
 #define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
@@ -244,5 +244,5 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	float satmul = (c0_Y + sharpdiff_lim + 0.03)/(c0_Y + 0.03);
 	float3 res = c0_Y + (sharpdiff_lim*3 + sharpdiff)/4 + (c[0].rgb - c0_Y)*satmul;
 
-	return float4( (video_level_out == true ? orig.rgb + (res - c[0].rgb) : res), alpha_out );
+	return float4( (video_level_out == true ? res + orig.rgb - c[0].rgb : res), alpha_out );
 }
