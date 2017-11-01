@@ -1,3 +1,8 @@
+## 2017-11-01
+- Small improvement for anti-ringing.
+- Tweaks and minor changes.
+
+
 ## 2017-04-11
 - Use compression instead of clipping for nmax_scale & nmin_scale.
 - Tweaked saturation compensation.

@@ -26,7 +26,7 @@
 
 // First pass, MUST BE PLACED IMMEDIATELY BEFORE THE SECOND PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2017-04-11 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2017-11-01 - (requires ps >= 3.0)
 // Tuned for use post-resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
