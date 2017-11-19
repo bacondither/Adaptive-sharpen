@@ -33,11 +33,11 @@ sampler s0 : register(s0);
 float2 p1  : register(c1);
 
 //---------------------------------------------------------------------------------
-#define w_offset 2.0         // Edge channel offset, MUST BE THE SAME IN ALL PASSES
+#define a_offset 2.0         // Edge channel offset, MUST BE THE SAME IN ALL PASSES
 //---------------------------------------------------------------------------------
 
 // Get destination pixel values
-#define get(x,y)    ( saturate(tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))).rgb) )
+#define get(x,y)    ( saturate(tex2D(s0, p1*float2(x, y) + tex).rgb) )
 
 // Component-wise distance
 #define b_diff(pix) ( abs(blur - c[pix]) )
@@ -73,5 +73,5 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                   + 0.92*(b_diff(1) + b_diff(3)  + b_diff(6)  + b_diff(8))
 	                   + 0.23*(b_diff(9) + b_diff(10) + b_diff(11) + b_diff(12)) );
 
-	return float4( (tex2D(s0, tex).rgb), (edge*c_comp + w_offset) );
+	return float4( (tex2D(s0, tex).rgb), (edge*c_comp + a_offset) );
 }

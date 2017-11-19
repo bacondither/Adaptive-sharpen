@@ -66,22 +66,22 @@ float2 p1  : register(c1);
 #define alpha_out       1.0                  // MPDN requires the alpha channel output to be 1.0
 
 //-------------------------------------------------------------------------------------------------
-#define w_offset        2.0                  // Edge channel offset, MUST BE THE SAME IN ALL PASSES
+#define a_offset        2.0                  // Edge channel offset, MUST BE THE SAME IN ALL PASSES
 #define bounds_check    true                 // If edge data is outside bounds, make pixels green
 //-------------------------------------------------------------------------------------------------
 
-// Soft if, fast approx
-#define soft_if(a,b,c) ( saturate((a + b + c - 3*w_offset + 0.06)/(abs(maxedge) + 0.03) - 0.85) )
+// Soft if, fast linear approx
+#define soft_if(a,b,c) ( saturate((a + b + c - 3*a_offset + 0.06)/(abs(maxedge) + 0.03) - 0.85) )
 
 // Soft limit, modified tanh
-#define soft_lim(v,s)  ( ((exp(2*min(abs(v), s*24)/s) - 1)/(exp(2*min(abs(v), s*24)/s) + 1))*s )
+#define soft_lim(v,s)  ( (exp(2*min(abs(v), s*24)/s) - 1)/(exp(2*min(abs(v), s*24)/s) + 1)*s )
 
 // Weighted power mean
-#define wpmean(a,b,w)  ( pow((w*pow(abs(a), pm_p) + abs(1-w)*pow(abs(b), pm_p)), (1.0/pm_p)) )
+#define wpmean(a,b,w)  ( pow(w*pow(abs(a), pm_p) + abs(1-w)*pow(abs(b), pm_p), (1.0/pm_p)) )
 
 // Get destination pixel values
-#define get(x,y)       ( tex2D(s0, tex + float2(x*(p1[0]), y*(p1[1]))) )
-#define sat(inp)       ( float4(saturate((inp).xyz), (inp).w) )
+#define get(x,y)       ( tex2D(s0, p1*float2(x, y) + tex) )
+#define sat(var)       ( float4(saturate((var).rgb), (var).a) )
 
 // Maximum of four values
 #define max4(a,b,c,d)  ( max(max(a, b), max(c, d)) )
@@ -90,14 +90,14 @@ float2 p1  : register(c1);
 #define CtL(RGB)       ( sqrt(dot(float3(0.2558, 0.6511, 0.0931), saturate((RGB)*abs(RGB)).rgb)) )
 
 // Center pixel diff
-#define mdiff(a,b,c,d,e,f,g) ( abs(luma[g]-luma[a]) + abs(luma[g]-luma[b])			 \
-                             + abs(luma[g]-luma[c]) + abs(luma[g]-luma[d])			 \
-                             + 0.5*(abs(luma[g]-luma[e]) + abs(luma[g]-luma[f])) )
+#define mdiff(a,b,c,d,e,f,g) ( abs(luma[g] - luma[a]) + abs(luma[g] - luma[b])       \
+                             + abs(luma[g] - luma[c]) + abs(luma[g] - luma[d])       \
+                             + 0.5*(abs(luma[g] - luma[e]) + abs(luma[g] - luma[f])) )
 
 float4 main(float2 tex : TEXCOORD0) : COLOR
 {
 	float4 orig  = get(0, 0);
-	float c_edge = orig.w - w_offset;
+	float c_edge = orig.a - a_offset;
 
 	if (bounds_check == true)
 	{
@@ -119,8 +119,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                 get(-2, 1), get(-2,-1), get( 0,-3), get( 1,-2), get(-1,-2) };
 
 	// Allow for higher overshoot if the current edge pixel is surrounded by similar edge pixels
-	float maxedge = max4( max4(c[1].w,c[2].w,c[3].w,c[4].w), max4(c[5].w,c[6].w,c[7].w,c[8].w),
-	                      max4(c[9].w,c[10].w,c[11].w,c[12].w), c[0].w ) - w_offset;
+	float maxedge = max4( max4(c[1].a,c[2].a,c[3].a,c[4].a), max4(c[5].a,c[6].a,c[7].a,c[8].a),
+	                      max4(c[9].a,c[10].a,c[11].a,c[12].a), c[0].a ) - a_offset;
 
 	// [          x          ]
 	// [       z, x, w       ]
@@ -129,10 +129,10 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	// [    w, w, x, z, z    ]
 	// [       w, x, z       ]
 	// [          x          ]
-	float sbe = soft_if(c[2].w,c[9].w,c[22].w) *soft_if(c[7].w,c[12].w,c[13].w)  // x dir
-	          + soft_if(c[4].w,c[10].w,c[19].w)*soft_if(c[5].w,c[11].w,c[16].w)  // y dir
-	          + soft_if(c[1].w,c[24].w,c[21].w)*soft_if(c[8].w,c[14].w,c[17].w)  // z dir
-	          + soft_if(c[3].w,c[23].w,c[18].w)*soft_if(c[6].w,c[20].w,c[15].w); // w dir
+	float sbe = soft_if(c[2].a,c[9].a, c[22].a)*soft_if(c[7].a,c[12].a,c[13].a)  // x dir
+	          + soft_if(c[4].a,c[10].a,c[19].a)*soft_if(c[5].a,c[11].a,c[16].a)  // y dir
+	          + soft_if(c[1].a,c[24].a,c[21].a)*soft_if(c[8].a,c[14].a,c[17].a)  // z dir
+	          + soft_if(c[3].a,c[23].a,c[18].a)*soft_if(c[6].a,c[20].a,c[15].a); // w dir
 
 	float2 cs = lerp( float2(L_compr_low,  D_compr_low),
 	                  float2(L_compr_high, D_compr_high), smoothstep(2, 3.1, sbe) );
@@ -184,8 +184,8 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 
 	[unroll] for (int pix = 0; pix < 12; ++pix)
 	{
-		float t      = saturate((c[pix + 1].w - w_offset - 0.01)/(lowthr_mxw - 0.01));
-		float lowthr = t*t*(2.97 - 1.98*t) + 0.01; // t*t((3 - a*3) - (2 - a*2)*t) + a
+		float t      = saturate((c[pix + 1].a - a_offset - 0.01)/(lowthr_mxw - 0.01));
+		float lowthr = t*t*(2.97 - 1.98*t) + 0.01; // t*t*(3 - a*3 - (2 - a*2)*t) + a
 
 		neg_laplace += pow(luma[pix + 1] + 0.06, 2.4)*(weights[pix]*lowthr);
 		weightsum   += weights[pix]*lowthr;
@@ -205,22 +205,22 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	{
 		float temp;
 
-		for (int i1 = i; i1 < 24-i; i1 += 2)
+		for (int j = i; j < 24-i; j += 2)
 		{
-			temp = luma[i1];
-			luma[i1]   = min(luma[i1], luma[i1+1]);
-			luma[i1+1] = max(temp, luma[i1+1]);
+			temp = luma[j];
+			luma[j]   = min(luma[j], luma[j+1]);
+			luma[j+1] = max(temp, luma[j+1]);
 		}
 
-		for (int i2 = 24-i; i2 > i; i2 -= 2)
+		for (int jj = 24-i; jj > i; jj -= 2)
 		{
 			temp = luma[i];
-			luma[i]    = min(luma[i], luma[i2]);
-			luma[i2]   = max(temp, luma[i2]);
+			luma[i]    = min(luma[i], luma[jj]);
+			luma[jj]   = max(temp, luma[jj]);
 
 			temp = luma[24-i];
-			luma[24-i] = max(luma[24-i], luma[i2-1]);
-			luma[i2-1] = min(temp, luma[i2-1]);
+			luma[24-i] = max(luma[24-i], luma[jj-1]);
+			luma[jj-1] = min(temp, luma[jj-1]);
 		}
 	}
 
