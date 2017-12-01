@@ -241,7 +241,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 
 	// Compensate for saturation loss/gain while making pixels brighter/darker
 	float sharpdiff_lim = saturate(c0_Y + sharpdiff) - c0_Y;
-	float satmul = (c0_Y + sharpdiff_lim + 0.03)/(c0_Y + 0.03);
+	float satmul = (c0_Y + max(sharpdiff_lim*0.9, sharpdiff_lim) + 0.03)/(c0_Y + 0.03);
 	float3 res = c0_Y + (sharpdiff_lim*3 + sharpdiff)/4 + (c[0].rgb - c0_Y)*satmul;
 
 	return float4( (video_level_out == true ? res + orig.rgb - c[0].rgb : res), alpha_out );
