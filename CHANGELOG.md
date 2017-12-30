@@ -1,3 +1,7 @@
+## 2017-12-30
+- Cosmetic changes and minor improvements.
+
+
 ## 2017-11-01
 - Small improvement for anti-ringing.
 - Tweaks and minor changes.
