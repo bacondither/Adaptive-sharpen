@@ -26,7 +26,7 @@
 
 // First pass, MUST BE PLACED IMMEDIATELY BEFORE THE SECOND PASS IN THE CHAIN
 
-// Adaptive sharpen - version 2017-12-30 - (requires ps >= 3.0)
+// Adaptive sharpen - version 2018-04-14 - (requires ps >= 3.0)
 // Tuned for use post-resize, EXPECTS FULL RANGE GAMMA LIGHT
 
 sampler s0 : register(s0);
@@ -55,7 +55,7 @@ float4 main(float2 tex : TEXCOORD0) : COLOR
 	                 get(-2, 0), get( 2, 0), get( 0, 2) };
 
 	// Blur, gauss 3x3
-	float3 blur  = (2*(c[2]+c[4]+c[5]+c[7]) + (c[1]+c[3]+c[6]+c[8]) + 4*c[0])/16;
+	float3 blur = (2*(c[2]+c[4]+c[5]+c[7]) + (c[1]+c[3]+c[6]+c[8]) + 4*c[0])/16;
 
 	// Contrast compression, center = 0.5, scaled to 1/3
 	float c_comp = saturate(4.0/15.0 + 0.9*exp2(dot(blur, -37.0/15.0)));
